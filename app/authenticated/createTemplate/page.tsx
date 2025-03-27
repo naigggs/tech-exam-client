@@ -768,6 +768,7 @@ export default function CreateTemplate() {
 
                         <div className="flex gap-2 mb-4">
                           <Input
+
                             placeholder="Element Name"
                             value={newElement.name}
                             onChange={(e) =>
@@ -776,7 +777,6 @@ export default function CreateTemplate() {
                                 name: e.target.value,
                               })
                             }
-                            className="flex-1"
                           />
                           <Input
                             type="number"
