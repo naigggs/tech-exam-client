@@ -23,6 +23,7 @@ import {
   Pencil,
   Save,
   Upload,
+  Loader2,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -34,6 +35,8 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface PageProps {
   params: Promise<{
@@ -45,6 +48,8 @@ export default function ContractMaker({ params }: PageProps) {
   const unwrappedParams = React.use(params) as { id: string };
   const { id } = unwrappedParams;
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     contractTitle: "Service Agreement Contract",
@@ -146,6 +151,8 @@ export default function ContractMaker({ params }: PageProps) {
 
   const handleSaveDraft = async () => {
     try {
+      setIsSubmitting(true);
+      
       const payload = {
         proposal: id,
         contract_title: formData.contractTitle,
@@ -179,9 +186,20 @@ export default function ContractMaker({ params }: PageProps) {
         throw new Error("Failed to save contract draft");
       }
 
-      console.log("Contract draft saved successfully");
+      toast.success("Contract created successfully!", {
+        description: `Your contract "${formData.contractTitle}" has been saved.`,
+        duration: 4000,
+      });
+      
+      router.push("/authenticated/contract");
     } catch (error) {
       console.error("Error saving contract draft:", error);
+      toast.error("Failed to create contract", { 
+        description: "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -197,82 +215,6 @@ export default function ContractMaker({ params }: PageProps) {
     return name[0]?.toUpperCase() || "";
   };
 
-  // const generatePDF = async () => {
-  //   const content = document.querySelector('.contract-content');
-  //   if (!content) return;
-
-  //   try {
-  //     // Create a clone of the content to avoid modifying the original
-  //     const clone = content.cloneNode(true) as HTMLElement;
-  //     clone.style.backgroundColor = '#ffffff';
-  //     clone.style.color = '#000000';
-      
-  //     // Process all elements in the clone to ensure RGB colors
-  //     const allElements = clone.getElementsByTagName('*');
-  //     Array.from(allElements).forEach((el) => {
-  //       const element = el as HTMLElement;
-  //       element.style.backgroundColor = '#ffffff';
-  //       element.style.color = '#000000';
-  //       // Remove any oklch colors from tailwind classes
-  //       element.className = element.className.split(' ')
-  //         .filter(cls => !cls.includes('oklch'))
-  //         .join(' ');
-  //     });
-
-  //     // Temporarily append clone to document for html2canvas
-  //     document.body.appendChild(clone);
-  //     clone.style.position = 'absolute';
-  //     clone.style.left = '-9999px';
-  //     clone.style.top = '0';
-
-  //     const canvas = await html2canvas(clone, {
-  //       scale: 2,
-  //       logging: false,
-  //       useCORS: true,
-  //       allowTaint: true,
-  //       backgroundColor: '#ffffff',
-  //       removeContainer: true // Automatically remove the temporary element
-  //     });
-
-  //     // Remove the clone from document
-  //     document.body.removeChild(clone);
-
-  //     const imgWidth = 210; // A4 width in mm
-  //     const pageHeight = 297; // A4 height in mm
-  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  //     let heightLeft = imgHeight;
-  //     let position = 0;
-
-  //     const pdf = new jsPDF('p', 'mm', 'a4');
-  //     let firstPage = true;
-
-  //     while (heightLeft >= 0) {
-  //       if (!firstPage) {
-  //         pdf.addPage();
-  //       }
-        
-  //       pdf.addImage(
-  //         canvas.toDataURL('image/png', 1.0),
-  //         'PNG',
-  //         0,
-  //         position,
-  //         imgWidth,
-  //         imgHeight,
-  //         '',
-  //         'FAST'
-  //       );
-        
-  //       heightLeft -= pageHeight;
-  //       position -= pageHeight;
-  //       firstPage = false;
-  //     }
-
-  //     pdf.save(`${formData.contractTitle}.pdf`);
-  //   } catch (error) {
-  //     console.error('Error generating PDF:', error);
-  //   }
-  // };
-
   return (
     <main className="flex-1 p-6 lg:p-8 bg-muted/10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
@@ -287,9 +229,17 @@ export default function ContractMaker({ params }: PageProps) {
             <Upload className="mr-2 h-4 w-4" />
             Import
           </Button>
-          <Button variant="outline" onClick={handleSaveDraft}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Draft
+          <Button 
+            variant="outline" 
+            onClick={handleSaveDraft} 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {isSubmitting ? "Saving..." : "Save Draft"}
           </Button>
           <Button>
             <Download className="mr-2 h-4 w-4" />
@@ -507,51 +457,6 @@ export default function ContractMaker({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
-
-          {/* <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>Client Contract Signing</CardTitle>
-              <CardDescription>Sign the contract here</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="signature-upload">
-                  E-Signature File Upload
-                  </Label>
-                  <Input
-                  id="signature-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  />
-                  {formData.signatureImage && (
-                    <div className="mt-2">
-                      <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-                      <img 
-                        src={formData.signatureImage} 
-                        alt="Signature preview" 
-                        className="max-h-20 border rounded-md p-2"
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="payment-terms">Client Name Initials</Label>
-                  <Input
-                    id="payment-terms"
-                    value={formData.clientNameInitials}
-                    onChange={(e) =>
-                      handleInputChange("clientNameInitials", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button>Sign Contract</Button>
-              </div>
-            </CardContent>
-          </Card> */}
         </div>
 
         {/* Preview Section */}
@@ -693,9 +598,16 @@ export default function ContractMaker({ params }: PageProps) {
               <div className="text-sm text-muted-foreground">
                 Last updated: {format(new Date(), "MMM d, yyyy 'at' h:mm a")}
               </div>
-              <Button>
-                <Download className="mr-2 h-4 w-4" />
-                Download as PDF
+              <Button 
+                onClick={handleSaveDraft} 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isSubmitting ? "Saving..." : "Download as PDF"}
               </Button>
             </CardFooter>
           </Card>

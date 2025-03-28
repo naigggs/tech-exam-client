@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Element {
   id: number;
@@ -383,10 +384,21 @@ export default function CreateTemplate() {
   
       const data = await response.json();
       console.log("Template saved successfully:", data);
-      // Add success notification here
+      
+      toast.success("Template created successfully!", {
+        description: `Your template "${templateName}" has been saved.`,
+        duration: 4000,
+      });
+
+      // Redirect to the templates list page
+      window.location.href = "/authenticated/template";
     } catch (error) {
       console.error("Error saving template:", error);
-      // Add error notification here
+      
+      toast.error("Failed to create template", { 
+        description: "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
     }
   };
 

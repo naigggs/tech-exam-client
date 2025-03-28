@@ -26,6 +26,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface Element {
   id?: number;
@@ -379,7 +380,7 @@ export default function CreateProposal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     // Prepare proposal categories with elements
     const proposalCategories = [
       ...selectedCategories.map(category => ({
@@ -403,14 +404,14 @@ export default function CreateProposal() {
         }))
       }))
     ];
-
+    
     // Prepare proposal variables with their values
     const proposalVariables = getAllSelectedVariables().map(variable => ({
       name: variable.name,
       category: variable.category,
       value: variableValues[variable.id] || 0
     }));
-
+    
     const payload = {
       name: proposalName,
       description: proposalDescription,
@@ -419,7 +420,7 @@ export default function CreateProposal() {
       client_name: clientName,
       client_email: clientEmail,
     };
-
+    
     try {
       const response = await fetch(`${API_URL}/proposals`, {
         method: "POST",
@@ -428,17 +429,29 @@ export default function CreateProposal() {
         },
         body: JSON.stringify(payload),
       });
-
+      
       if (!response.ok) {
         throw new Error("Failed to submit form");
       }
-
+      
       const data = await response.json();
       console.log("Success:", data);
-      // You might want to redirect or show a success message here
+      
+      toast.success("Proposal created successfully!", {
+        description: `Your proposal "${proposalName}" has been saved.`,
+        duration: 4000,
+      });
+      
+      // Redirect to the proposals list page
+      window.location.href = "/authenticated/proposal";
+      
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Handle error (show error message, etc.)
+      
+      toast.error("Failed to create proposal", { 
+        description: "Please try again or contact support if the issue persists.",
+        duration: 5000,
+      });
     }
   };
 
