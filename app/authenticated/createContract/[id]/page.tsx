@@ -33,8 +33,8 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -91,9 +91,9 @@ export default function ContractMaker({ params }: PageProps) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          signatureImage: base64String
+          signatureImage: base64String,
         }));
       };
       reader.readAsDataURL(file);
@@ -152,7 +152,7 @@ export default function ContractMaker({ params }: PageProps) {
   const handleSaveDraft = async () => {
     try {
       setIsSubmitting(true);
-      
+
       const payload = {
         proposal: id,
         contract_title: formData.contractTitle,
@@ -164,10 +164,10 @@ export default function ContractMaker({ params }: PageProps) {
         contractor_initials: getInitials(formData.contractorName),
         payment_terms: formData.paymentTerms,
         // Convert dates to YYYY-MM-DD format with no time component
-        start_date: formData.startDate.toISOString().split('T')[0],
-        end_date: formData.endDate.toISOString().split('T')[0],
+        start_date: formData.startDate.toISOString().split("T")[0],
+        end_date: formData.endDate.toISOString().split("T")[0],
         // Remove $ and convert to float
-        payment_amount: parseFloat(formData.paymentAmount.replace('$', '')),
+        payment_amount: parseFloat(formData.paymentAmount.replace("$", "")),
         scope: formData.scope,
         additional_notes: formData.additionalNotes,
         contractor_company: formData.contractorCompany,
@@ -190,12 +190,13 @@ export default function ContractMaker({ params }: PageProps) {
         description: `Your contract "${formData.contractTitle}" has been saved.`,
         duration: 4000,
       });
-      
+
       router.push("/authenticated/contract");
     } catch (error) {
       console.error("Error saving contract draft:", error);
-      toast.error("Failed to create contract", { 
-        description: "Please try again or contact support if the issue persists.",
+      toast.error("Failed to create contract", {
+        description:
+          "Please try again or contact support if the issue persists.",
         duration: 5000,
       });
     } finally {
@@ -225,25 +226,13 @@ export default function ContractMaker({ params }: PageProps) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Import
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSaveDraft} 
-            disabled={isSubmitting}
-          >
+          <Button onClick={handleSaveDraft} disabled={isSubmitting}>
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
             {isSubmitting ? "Saving..." : "Save Draft"}
-          </Button>
-          <Button>
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
           </Button>
         </div>
       </div>
@@ -573,9 +562,9 @@ export default function ContractMaker({ params }: PageProps) {
                         <p className="font-semibold">CLIENT:</p>
                         {formData.signatureImage ? (
                           <div className="mt-4">
-                            <img 
-                              src={formData.signatureImage} 
-                              alt="Client signature" 
+                            <img
+                              src={formData.signatureImage}
+                              alt="Client signature"
                               className="max-h-16 mb-2"
                             />
                           </div>
@@ -598,10 +587,7 @@ export default function ContractMaker({ params }: PageProps) {
               <div className="text-sm text-muted-foreground">
                 Last updated: {format(new Date(), "MMM d, yyyy 'at' h:mm a")}
               </div>
-              <Button 
-                onClick={handleSaveDraft} 
-                disabled={isSubmitting}
-              >
+              <Button onClick={handleSaveDraft} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

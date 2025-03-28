@@ -212,7 +212,7 @@ export default function Templates() {
                     <span className="text-xs text-muted-foreground">Admin Account</span>
                   </div>
                   <Button size="sm" asChild>
-                    <Link href={`/authenticated/proposal/${template.id}`}>View</Link>
+                    <Link href={`/authenticated/template/${template.id}`}>View</Link>
                   </Button>
                   <Button size="sm" asChild>
                     <Link href="/authenticated/createProposal">Use Template</Link>
