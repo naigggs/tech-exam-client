@@ -47,6 +47,7 @@ import {
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 
 interface Element {
   id: number;
@@ -313,17 +314,20 @@ export default function CreateTemplate() {
 
   const handleAddCustomVariable = () => {
     if (newVariable.name.trim()) {
-      setCustomVariables([...customVariables, {
-        name: newVariable.name,
-        category: newVariable.type,
-        description: newVariable.description,
-        default_value: newVariable.default_value,
-        required: newVariable.required
-      }]);
+      setCustomVariables([
+        ...customVariables,
+        {
+          name: newVariable.name,
+          category: newVariable.type,
+          description: newVariable.description,
+          default_value: newVariable.default_value,
+          required: newVariable.required,
+        },
+      ]);
       // Only reset the name, keep other values
-      setNewVariable(prev => ({
+      setNewVariable((prev) => ({
         ...prev,
-        name: ""
+        name: "",
       }));
     }
   };
@@ -345,6 +349,58 @@ export default function CreateTemplate() {
   };
 
   const handleSubmit = async () => {
+    // Validate required fields
+    if (!templateName.trim()) {
+      toast.error("Validation Error", {
+        description: "Template name is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!templateDescription.trim()) {
+      toast.error("Validation Error", {
+        description: "Template description is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (selectedCategories.length === 0 && customCategories.length === 0) {
+      toast.error("Validation Error", {
+        description: "At least one category is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate that custom categories have at least one element
+    const emptyCustomCategory = customCategories.find(cat => cat.elements.length === 0);
+    if (emptyCustomCategory) {
+      toast.error("Validation Error", {
+        description: `Category "${emptyCustomCategory.name}" has no elements`,
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate that at least one variable is selected or custom variable is added
+    const totalVariables = [
+      ...selectedLinearFeetVariables,
+      ...selectedSquareFeetVariables,
+      ...selectedCubicFeetVariables,
+      ...selectedCountVariables,
+      ...customVariables
+    ].length;
+
+    if (totalVariables === 0) {
+      toast.error("Validation Error", {
+        description: "At least one variable is required",
+        duration: 4000,
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/templates`, {
         method: "POST",
@@ -355,13 +411,13 @@ export default function CreateTemplate() {
           templateName: templateName,
           templateDescription: templateDescription,
           categories: selectedCategories.map((cat) => cat.id),
-          new_categories: customCategories.map(cat => ({
+          new_categories: customCategories.map((cat) => ({
             name: cat.name,
-            elements: cat.elements.map(element => ({
+            elements: cat.elements.map((element) => ({
               name: element.name,
               material_cost: element.material_cost,
-              labor_cost: element.labor_cost
-            }))
+              labor_cost: element.labor_cost,
+            })),
           })),
           // Only include IDs of existing variables
           variables: [
@@ -369,7 +425,7 @@ export default function CreateTemplate() {
             ...selectedSquareFeetVariables,
             ...selectedCubicFeetVariables,
             ...selectedCountVariables,
-          ].map(variable => variable.id),
+          ].map((variable) => variable.id),
           // Only include custom variables
           new_variables: customVariables.map((varData) => ({
             name: varData.name,
@@ -377,14 +433,14 @@ export default function CreateTemplate() {
           })),
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to save template");
       }
-  
+
       const data = await response.json();
       console.log("Template saved successfully:", data);
-      
+
       toast.success("Template created successfully!", {
         description: `Your template "${templateName}" has been saved.`,
         duration: 4000,
@@ -394,9 +450,10 @@ export default function CreateTemplate() {
       window.location.href = "/authenticated/template";
     } catch (error) {
       console.error("Error saving template:", error);
-      
-      toast.error("Failed to create template", { 
-        description: "Please try again or contact support if the issue persists.",
+
+      toast.error("Failed to create template", {
+        description:
+          "Please try again or contact support if the issue persists.",
         duration: 5000,
       });
     }
@@ -506,15 +563,11 @@ export default function CreateTemplate() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
-            <X className="mr-2 h-4 w-4" />
+            <X className="mr-0 h-4 w-4" />
             Cancel
           </Button>
-          <Button variant="outline">
-            <Save className="mr-2 h-4 w-4" />
-            Save Draft
-          </Button>
           <Button onClick={handleSubmit}>
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="mr-0 h-4 w-4" />
             Save Template
           </Button>
         </div>
@@ -779,44 +832,53 @@ export default function CreateTemplate() {
                         </div>
 
                         <div className="flex gap-2 mb-4">
-                          <Input
-
-                            placeholder="Element Name"
-                            value={newElement.name}
-                            onChange={(e) =>
-                              setNewElement({
-                                ...newElement,
-                                name: e.target.value,
-                              })
-                            }
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Material Cost"
-                            value={newElement.material_cost}
-                            onChange={(e) =>
-                              setNewElement({
-                                ...newElement,
-                                material_cost: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Labor Cost"
-                            value={newElement.labor_cost}
-                            onChange={(e) =>
-                              setNewElement({
-                                ...newElement,
-                                labor_cost: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                          />
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1">Enter the name of the element</Label>
+                            <Input
+                              placeholder="Element Name"
+                              value={newElement.name}
+                              onChange={(e) =>
+                                setNewElement({
+                                  ...newElement,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1">Cost of materials</Label>
+                            <Input
+                              type="number"
+                              placeholder="Material Cost"
+                              value={newElement.material_cost}
+                              onChange={(e) =>
+                                setNewElement({
+                                  ...newElement,
+                                  material_cost: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1">Cost of labor</Label>
+                            <Input
+                              type="number"
+                              placeholder="Labor Cost"
+                              value={newElement.labor_cost}
+                              onChange={(e) =>
+                                setNewElement({
+                                  ...newElement,
+                                  labor_cost: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
                           <Button
                             onClick={() =>
                               handleAddElementToCustomCategory(categoryIndex)
                             }
                             disabled={!newElement.name.trim()}
+                            className="mt-5"
                           >
                             <Plus className="mr-2 h-4 w-4" />
                             Add Element
@@ -1140,9 +1202,7 @@ export default function CreateTemplate() {
                                           key={elementIndex}
                                           className="border-b"
                                         >
-                                          <td className="p-2">
-                                            {element.name}
-                                          </td>
+                                          <td className="p-2">{element.name}</td>
                                           <td className="p-2 text-right">
                                             ${element.material_cost.toFixed(2)}
                                           </td>

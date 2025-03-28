@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronsUpDown, PlusCircle, X, Check } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronsUpDown, PlusCircle, X, Check, Save } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -67,11 +78,11 @@ const fetchCategories = async () => {
   try {
     const response = await fetch(`${API_URL}/proposal-categories`);
     if (!response.ok) {
-      throw new Error('Failed to fetch categories');
+      throw new Error("Failed to fetch categories");
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error("Error fetching categories:", error);
     return [];
   }
 };
@@ -80,11 +91,11 @@ const fetchVariables = async () => {
   try {
     const response = await fetch(`${API_URL}/variables`);
     if (!response.ok) {
-      throw new Error('Failed to fetch variables');
+      throw new Error("Failed to fetch variables");
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching variables:', error);
+    console.error("Error fetching variables:", error);
     return [];
   }
 };
@@ -96,7 +107,7 @@ export default function CreateProposal() {
   const [proposalDescription, setProposalDescription] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
-  
+
   // For new items
   const [newCategory, setNewCategory] = useState("");
   const [newVariable, setNewVariable] = useState({
@@ -112,13 +123,21 @@ export default function CreateProposal() {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
 
   // For selected variables by type
-  const [selectedLinearFeetVariables, setSelectedLinearFeetVariables] = useState<Variable[]>([]);
-  const [selectedSquareFeetVariables, setSelectedSquareFeetVariables] = useState<Variable[]>([]);
-  const [selectedCubicFeetVariables, setSelectedCubicFeetVariables] = useState<Variable[]>([]);
-  const [selectedCountVariables, setSelectedCountVariables] = useState<Variable[]>([]);
+  const [selectedLinearFeetVariables, setSelectedLinearFeetVariables] =
+    useState<Variable[]>([]);
+  const [selectedSquareFeetVariables, setSelectedSquareFeetVariables] =
+    useState<Variable[]>([]);
+  const [selectedCubicFeetVariables, setSelectedCubicFeetVariables] = useState<
+    Variable[]
+  >([]);
+  const [selectedCountVariables, setSelectedCountVariables] = useState<
+    Variable[]
+  >([]);
 
   // For custom added items
-  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>(
+    []
+  );
   const [customVariables, setCustomVariables] = useState<Variable[]>([]);
   const [newElement, setNewElement] = useState({
     name: "",
@@ -127,7 +146,9 @@ export default function CreateProposal() {
   });
 
   // For variable values
-  const [variableValues, setVariableValues] = useState<Record<number, number>>({});
+  const [variableValues, setVariableValues] = useState<Record<number, number>>(
+    {}
+  );
 
   // For combobox open state
   const [openCategoryCombobox, setOpenCategoryCombobox] = useState(false);
@@ -141,7 +162,9 @@ export default function CreateProposal() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
 
   // State for editing elements
-  const [editedElements, setEditedElements] = useState<Record<string, Record<string, Element>>>({});
+  const [editedElements, setEditedElements] = useState<
+    Record<string, Record<string, Element>>
+  >({});
 
   useEffect(() => {
     // Fetch existing categories and variables
@@ -177,24 +200,40 @@ export default function CreateProposal() {
       const response = await fetch(`${API_URL}/templates/${templateId}`);
       if (!response.ok) throw new Error("Failed to fetch template details");
       const template = await response.json();
-      
+
       setSelectedCategories(template.categories || []);
-      
+
       // Set up edited elements with template data
       const newEditedElements: Record<string, Record<string, Element>> = {};
       template.categories?.forEach((category: Category) => {
-        newEditedElements[category.id.toString()] = category.elements.reduce((acc: Record<string, Element>, element: Element) => ({
-          ...acc,
-          ...(element.id !== undefined ? { [element.id.toString()]: element } : {})
-        }), {});
+        newEditedElements[category.id.toString()] = category.elements.reduce(
+          (acc: Record<string, Element>, element: Element) => ({
+            ...acc,
+            ...(element.id !== undefined
+              ? { [element.id.toString()]: element }
+              : {}),
+          }),
+          {}
+        );
       });
       setEditedElements(newEditedElements);
 
       // Handle variables
-      const linearFeet = template.variables?.filter((v: Variable) => v.category === "Linear Feet") || [];
-      const squareFeet = template.variables?.filter((v: Variable) => v.category === "Square Feet") || [];
-      const cubicFeet = template.variables?.filter((v: Variable) => v.category === "Cubic Feet") || [];
-      const count = template.variables?.filter((v: Variable) => v.category === "Count") || [];
+      const linearFeet =
+        template.variables?.filter(
+          (v: Variable) => v.category === "Linear Feet"
+        ) || [];
+      const squareFeet =
+        template.variables?.filter(
+          (v: Variable) => v.category === "Square Feet"
+        ) || [];
+      const cubicFeet =
+        template.variables?.filter(
+          (v: Variable) => v.category === "Cubic Feet"
+        ) || [];
+      const count =
+        template.variables?.filter((v: Variable) => v.category === "Count") ||
+        [];
 
       setSelectedLinearFeetVariables(linearFeet);
       setSelectedSquareFeetVariables(squareFeet);
@@ -207,7 +246,6 @@ export default function CreateProposal() {
         initialValues[variable.id] = 0;
       });
       setVariableValues(initialValues);
-
     } catch (error) {
       console.error("Error loading template:", error);
     }
@@ -215,7 +253,10 @@ export default function CreateProposal() {
 
   const handleAddCustomCategory = () => {
     if (newCategory.trim()) {
-      setCustomCategories([...customCategories, { name: newCategory, elements: [] }]);
+      setCustomCategories([
+        ...customCategories,
+        { name: newCategory, elements: [] },
+      ]);
       setNewCategory("");
     }
   };
@@ -229,8 +270,11 @@ export default function CreateProposal() {
   const handleAddCustomVariable = () => {
     if (newVariable.name.trim()) {
       const customId = -1 * (customVariables.length + 1);
-      setCustomVariables([...customVariables, { ...newVariable, id: customId }]);
-      setVariableValues(prev => ({ ...prev, [customId]: 0 }));
+      setCustomVariables([
+        ...customVariables,
+        { ...newVariable, id: customId },
+      ]);
+      setVariableValues((prev) => ({ ...prev, [customId]: 0 }));
       setNewVariable({ name: "", category: "Linear Feet" });
     }
   };
@@ -239,9 +283,9 @@ export default function CreateProposal() {
     const newCustomVariables = [...customVariables];
     const removedVariable = newCustomVariables.splice(index, 1)[0];
     setCustomVariables(newCustomVariables);
-    
+
     // Remove the value from variableValues
-    setVariableValues(prev => {
+    setVariableValues((prev) => {
       const newValues = { ...prev };
       delete newValues[removedVariable.id];
       return newValues;
@@ -250,35 +294,45 @@ export default function CreateProposal() {
 
   const handleCategorySelect = (category: Category) => {
     if (!editedElements[category.id.toString()]) {
-      setEditedElements(prev => ({
+      setEditedElements((prev) => ({
         ...prev,
-        [category.id.toString()]: category.elements.reduce((acc, element) => ({
-          ...acc,
-          ...(element.id !== undefined ? { [element.id.toString()]: element } : {})
-        }), {} as Record<string, Element>)
+        [category.id.toString()]: category.elements.reduce(
+          (acc, element) => ({
+            ...acc,
+            ...(element.id !== undefined
+              ? { [element.id.toString()]: element }
+              : {}),
+          }),
+          {} as Record<string, Element>
+        ),
       }));
     }
   };
 
-  const handleCostChange = (categoryId: number, elementId: number | undefined, field: 'material_cost' | 'labor_cost', value: string) => {
+  const handleCostChange = (
+    categoryId: number,
+    elementId: number | undefined,
+    field: "material_cost" | "labor_cost",
+    value: string
+  ) => {
     if (elementId === undefined) return;
     const numValue = parseFloat(value) || 0;
-    setEditedElements(prev => ({
+    setEditedElements((prev) => ({
       ...prev,
       [categoryId.toString()]: {
         ...prev[categoryId.toString()],
         [elementId.toString()]: {
           ...prev[categoryId.toString()]?.[elementId.toString()],
-          [field]: numValue
-        }
-      }
+          [field]: numValue,
+        },
+      },
     }));
   };
 
   const handleVariableValueChange = (variableId: number, value: string) => {
-    setVariableValues(prev => ({
+    setVariableValues((prev) => ({
       ...prev,
-      [variableId]: parseFloat(value) || 0
+      [variableId]: parseFloat(value) || 0,
     }));
   };
 
@@ -302,7 +356,7 @@ export default function CreateProposal() {
             ...selectedLinearFeetVariables,
             variable,
           ]);
-          setVariableValues(prev => ({ ...prev, [variable.id]: 0 }));
+          setVariableValues((prev) => ({ ...prev, [variable.id]: 0 }));
         }
         setOpenLinearFeetCombobox(false);
         break;
@@ -312,7 +366,7 @@ export default function CreateProposal() {
             ...selectedSquareFeetVariables,
             variable,
           ]);
-          setVariableValues(prev => ({ ...prev, [variable.id]: 0 }));
+          setVariableValues((prev) => ({ ...prev, [variable.id]: 0 }));
         }
         setOpenSquareFeetCombobox(false);
         break;
@@ -322,14 +376,14 @@ export default function CreateProposal() {
             ...selectedCubicFeetVariables,
             variable,
           ]);
-          setVariableValues(prev => ({ ...prev, [variable.id]: 0 }));
+          setVariableValues((prev) => ({ ...prev, [variable.id]: 0 }));
         }
         setOpenCubicFeetCombobox(false);
         break;
       case "Count":
         if (!selectedCountVariables.some((v) => v.id === variable.id)) {
           setSelectedCountVariables([...selectedCountVariables, variable]);
-          setVariableValues(prev => ({ ...prev, [variable.id]: 0 }));
+          setVariableValues((prev) => ({ ...prev, [variable.id]: 0 }));
         }
         setOpenCountCombobox(false);
         break;
@@ -359,9 +413,9 @@ export default function CreateProposal() {
         );
         break;
     }
-    
+
     // Remove the value from variableValues
-    setVariableValues(prev => {
+    setVariableValues((prev) => {
       const newValues = { ...prev };
       delete newValues[id];
       return newValues;
@@ -380,38 +434,130 @@ export default function CreateProposal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Validate required fields
+    if (!proposalName.trim()) {
+      toast.error("Validation Error", {
+        description: "Proposal name is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!proposalDescription.trim()) {
+      toast.error("Validation Error", {
+        description: "Proposal description is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!clientName.trim()) {
+      toast.error("Validation Error", {
+        description: "Client name is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!clientEmail.trim()) {
+      toast.error("Validation Error", {
+        description: "Client email is required",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(clientEmail)) {
+      toast.error("Validation Error", {
+        description: "Please enter a valid email address",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Check if either categories or template is selected
+    if (selectedCategories.length === 0 && customCategories.length === 0) {
+      toast.error("Validation Error", {
+        description: "Please select at least one category or use a template",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate that custom categories have elements
+    const emptyCustomCategory = customCategories.find(cat => cat.elements.length === 0);
+    if (emptyCustomCategory) {
+      toast.error("Validation Error", {
+        description: `Category "${emptyCustomCategory.name}" has no elements`,
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate that at least one variable is selected or custom variable is added
+    const totalVariables = [
+      ...selectedLinearFeetVariables,
+      ...selectedSquareFeetVariables,
+      ...selectedCubicFeetVariables,
+      ...selectedCountVariables,
+      ...customVariables
+    ].length;
+
+    if (totalVariables === 0) {
+      toast.error("Validation Error", {
+        description: "Please select at least one variable",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Verify all variables have values
+    const missingValues = Object.entries(variableValues).filter(([_, value]) => value === 0);
+    if (missingValues.length > 0) {
+      toast.error("Validation Error", {
+        description: "Please provide values for all variables",
+        duration: 4000,
+      });
+      return;
+    }
+
     // Prepare proposal categories with elements
     const proposalCategories = [
-      ...selectedCategories.map(category => ({
+      ...selectedCategories.map((category) => ({
         name: category.name,
-        elements: category.elements.map(element => {
+        elements: category.elements.map((element) => {
           const elementId = element.id?.toString();
-          const editedElement = elementId ? editedElements[category.id.toString()]?.[elementId] : element;
+          const editedElement = elementId
+            ? editedElements[category.id.toString()]?.[elementId]
+            : element;
           return {
             name: element.name,
-            material_cost: editedElement?.material_cost ?? element.material_cost,
-            labor_cost: editedElement?.labor_cost ?? element.labor_cost
+            material_cost:
+              editedElement?.material_cost ?? element.material_cost,
+            labor_cost: editedElement?.labor_cost ?? element.labor_cost,
           };
-        })
+        }),
       })),
-      ...customCategories.map(category => ({
+      ...customCategories.map((category) => ({
         name: category.name,
-        elements: category.elements.map(element => ({
+        elements: category.elements.map((element) => ({
           name: element.name,
           material_cost: element.material_cost,
-          labor_cost: element.labor_cost
-        }))
-      }))
+          labor_cost: element.labor_cost,
+        })),
+      })),
     ];
-    
+
     // Prepare proposal variables with their values
-    const proposalVariables = getAllSelectedVariables().map(variable => ({
+    const proposalVariables = getAllSelectedVariables().map((variable) => ({
       name: variable.name,
       category: variable.category,
-      value: variableValues[variable.id] || 0
+      value: variableValues[variable.id] || 0,
     }));
-    
+
     const payload = {
       name: proposalName,
       description: proposalDescription,
@@ -420,7 +566,7 @@ export default function CreateProposal() {
       client_name: clientName,
       client_email: clientEmail,
     };
-    
+
     try {
       const response = await fetch(`${API_URL}/proposals`, {
         method: "POST",
@@ -429,27 +575,27 @@ export default function CreateProposal() {
         },
         body: JSON.stringify(payload),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to submit form");
       }
-      
+
       const data = await response.json();
       console.log("Success:", data);
-      
+
       toast.success("Proposal created successfully!", {
         description: `Your proposal "${proposalName}" has been saved.`,
         duration: 4000,
       });
-      
+
       // Redirect to the proposals list page
       window.location.href = "/authenticated/proposal";
-      
     } catch (error) {
       console.error("Error submitting form:", error);
-      
-      toast.error("Failed to create proposal", { 
-        description: "Please try again or contact support if the issue persists.",
+
+      toast.error("Failed to create proposal", {
+        description:
+          "Please try again or contact support if the issue persists.",
         duration: 5000,
       });
     }
@@ -471,7 +617,10 @@ export default function CreateProposal() {
     }
   };
 
-  const handleRemoveElementFromCustomCategory = (categoryIndex: number, elementIndex: number) => {
+  const handleRemoveElementFromCustomCategory = (
+    categoryIndex: number,
+    elementIndex: number
+  ) => {
     const updatedCategories = [...customCategories];
     updatedCategories[categoryIndex].elements.splice(elementIndex, 1);
     setCustomCategories(updatedCategories);
@@ -552,7 +701,9 @@ export default function CreateProposal() {
                   type="number"
                   placeholder="Value"
                   value={variableValues[variable.id] || ""}
-                  onChange={(e) => handleVariableValueChange(variable.id, e.target.value)}
+                  onChange={(e) =>
+                    handleVariableValueChange(variable.id, e.target.value)
+                  }
                   className="w-32"
                 />
                 <Button
@@ -579,9 +730,16 @@ export default function CreateProposal() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Create Proposal</h1>
         <div className="flex gap-2">
-          <Button variant="outline">Cancel</Button>
-          <Button onClick={handleSubmit} variant="outline">Save Draft</Button>
-          <Button>Create a Contract</Button>
+          <Button variant="outline">
+            <X className="mr-0 h-4 w-4" />
+            Cancel
+          </Button>
+
+          <Button onClick={handleSubmit}>
+            {" "}
+            <Save className="mr-0 h-4 w-4" />
+            Save Proposal
+          </Button>
         </div>
       </div>
 
@@ -603,8 +761,8 @@ export default function CreateProposal() {
                 </CardDescription>
               </div>
               <div className="space-y-2">
-                <Select 
-                  value={selectedTemplate} 
+                <Select
+                  value={selectedTemplate}
                   onValueChange={(value) => {
                     setSelectedTemplate(value);
                     handleTemplateSelect(value);
@@ -615,7 +773,10 @@ export default function CreateProposal() {
                   </SelectTrigger>
                   <SelectContent>
                     {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>
+                      <SelectItem
+                        key={template.id}
+                        value={template.id.toString()}
+                      >
                         {template.templateName}
                       </SelectItem>
                     ))}
@@ -625,15 +786,12 @@ export default function CreateProposal() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label
-                  htmlFor="proposal-name"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="proposal-name" className="text-sm font-medium">
                   Proposal Name
                 </label>
-                <Input 
-                  id="proposal-name" 
-                  placeholder="Enter proposal name" 
+                <Input
+                  id="proposal-name"
+                  placeholder="Enter proposal name"
                   value={proposalName}
                   onChange={(e) => setProposalName(e.target.value)}
                 />
@@ -645,23 +803,22 @@ export default function CreateProposal() {
                 >
                   Proposal Description
                 </label>
-                <Textarea 
-                  id="proposal-description" 
-                  placeholder="Enter proposal description" 
+                <Textarea
+                  id="proposal-description"
+                  placeholder="Enter proposal description"
                   value={proposalDescription}
                   onChange={(e) => setProposalDescription(e.target.value)}
                 />
               </div>
-            
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="client-name" className="text-sm font-medium">
                     Client Name
                   </label>
-                  <Input 
-                    id="client-name" 
-                    placeholder="Enter client name" 
+                  <Input
+                    id="client-name"
+                    placeholder="Enter client name"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                   />
@@ -729,9 +886,7 @@ export default function CreateProposal() {
                               <CommandItem
                                 key={category.id}
                                 value={category.name}
-                                onSelect={() =>
-                                  handleSelectCategory(category)
-                                }
+                                onSelect={() => handleSelectCategory(category)}
                               >
                                 <Check
                                   className={cn(
@@ -783,11 +938,15 @@ export default function CreateProposal() {
                   {selectedCategories.map((category) => (
                     <div key={category.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-medium">Elements for {category.name}</h4>
+                        <h4 className="text-lg font-medium">
+                          Elements for {category.name}
+                        </h4>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveSelectedCategory(category.id)}
+                          onClick={() =>
+                            handleRemoveSelectedCategory(category.id)
+                          }
                           className="h-8 w-8 p-0"
                         >
                           <X className="h-4 w-4" />
@@ -807,8 +966,13 @@ export default function CreateProposal() {
                             {category.elements.map((element) => {
                               const elementId = element.id?.toString();
                               const categoryId = category.id.toString();
-                              const editedElement = elementId ? editedElements[categoryId]?.[elementId] ?? element : element;
-                              const total = editedElement.material_cost + editedElement.labor_cost;
+                              const editedElement = elementId
+                                ? editedElements[categoryId]?.[elementId] ??
+                                  element
+                                : element;
+                              const total =
+                                editedElement.material_cost +
+                                editedElement.labor_cost;
                               return (
                                 <tr key={element.id} className="border-b">
                                   <td className="p-2">{element.name}</td>
@@ -816,7 +980,14 @@ export default function CreateProposal() {
                                     <Input
                                       type="number"
                                       value={editedElement.material_cost}
-                                      onChange={(e) => handleCostChange(category.id, element.id, 'material_cost', e.target.value)}
+                                      onChange={(e) =>
+                                        handleCostChange(
+                                          category.id,
+                                          element.id,
+                                          "material_cost",
+                                          e.target.value
+                                        )
+                                      }
                                       className="w-32"
                                     />
                                   </td>
@@ -824,13 +995,21 @@ export default function CreateProposal() {
                                     <Input
                                       type="number"
                                       value={editedElement.labor_cost}
-                                      onChange={(e) => handleCostChange(category.id, element.id, 'labor_cost', e.target.value)}
+                                      onChange={(e) =>
+                                        handleCostChange(
+                                          category.id,
+                                          element.id,
+                                          "labor_cost",
+                                          e.target.value
+                                        )
+                                      }
                                       className="w-32"
                                     />
                                   </td>
                                   <td className="p-2">${total.toFixed(2)}</td>
                                 </tr>
-                              )})}
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -840,7 +1019,9 @@ export default function CreateProposal() {
               )}
 
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-2">Add Custom Categories</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  Add Custom Categories
+                </h3>
                 <div className="flex items-center gap-2 mb-2">
                   <Input
                     value={newCategory}
@@ -861,13 +1042,20 @@ export default function CreateProposal() {
                 {customCategories.length > 0 && (
                   <div className="space-y-6 mt-4">
                     {customCategories.map((category, categoryIndex) => (
-                      <div key={categoryIndex} className="border rounded-lg p-4">
+                      <div
+                        key={categoryIndex}
+                        className="border rounded-lg p-4"
+                      >
                         <div className="flex justify-between items-center mb-4">
-                          <h4 className="text-lg font-medium">{category.name}</h4>
+                          <h4 className="text-lg font-medium">
+                            {category.name}
+                          </h4>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleRemoveCustomCategory(categoryIndex)}
+                            onClick={() =>
+                              handleRemoveCustomCategory(categoryIndex)
+                            }
                             className="h-8 w-8 p-0"
                           >
                             <X className="h-4 w-4" />
@@ -880,7 +1068,10 @@ export default function CreateProposal() {
                             placeholder="Element Name"
                             value={newElement.name}
                             onChange={(e) =>
-                              setNewElement({ ...newElement, name: e.target.value })
+                              setNewElement({
+                                ...newElement,
+                                name: e.target.value,
+                              })
                             }
                           />
                           <Input
@@ -907,7 +1098,9 @@ export default function CreateProposal() {
                           />
                           <Button
                             type="button"
-                            onClick={() => handleAddElementToCustomCategory(categoryIndex)}
+                            onClick={() =>
+                              handleAddElementToCustomCategory(categoryIndex)
+                            }
                             disabled={!newElement.name.trim()}
                           >
                             <PlusCircle className="h-4 w-4 mr-2" />
@@ -921,40 +1114,56 @@ export default function CreateProposal() {
                             <table className="w-full">
                               <thead>
                                 <tr className="border-b bg-muted/50">
-                                  <th className="p-2 text-left">Element Name</th>
-                                  <th className="p-2 text-left">Material Cost</th>
+                                  <th className="p-2 text-left">
+                                    Element Name
+                                  </th>
+                                  <th className="p-2 text-left">
+                                    Material Cost
+                                  </th>
                                   <th className="p-2 text-left">Labor Cost</th>
                                   <th className="p-2 text-left">Total</th>
                                   <th className="p-2 text-left">Action</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {category.elements.map((element, elementIndex) => {
-                                  const total = element.material_cost + element.labor_cost;
-                                  return (
-                                    <tr key={elementIndex} className="border-b">
-                                      <td className="p-2">{element.name}</td>
-                                      <td className="p-2">${element.material_cost.toFixed(2)}</td>
-                                      <td className="p-2">${element.labor_cost.toFixed(2)}</td>
-                                      <td className="p-2">${total.toFixed(2)}</td>
-                                      <td className="p-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleRemoveElementFromCustomCategory(
-                                              categoryIndex,
-                                              elementIndex
-                                            )
-                                          }
-                                          className="h-8 w-8 p-0"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
+                                {category.elements.map(
+                                  (element, elementIndex) => {
+                                    const total =
+                                      element.material_cost + element.labor_cost;
+                                    return (
+                                      <tr
+                                        key={elementIndex}
+                                        className="border-b"
+                                      >
+                                        <td className="p-2">{element.name}</td>
+                                        <td className="p-2">
+                                          ${element.material_cost.toFixed(2)}
+                                        </td>
+                                        <td className="p-2">
+                                          ${element.labor_cost.toFixed(2)}
+                                        </td>
+                                        <td className="p-2">
+                                          ${total.toFixed(2)}
+                                        </td>
+                                        <td className="p-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleRemoveElementFromCustomCategory(
+                                                categoryIndex,
+                                                elementIndex
+                                              )
+                                            }
+                                            className="h-8 w-8 p-0"
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </td>
+                                      </tr>
+                                    );
+                                  }
+                                )}
                               </tbody>
                             </table>
                           </div>
@@ -1061,7 +1270,10 @@ export default function CreateProposal() {
                   <div className="mt-4 space-y-2">
                     {customVariables.map((variable, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Badge variant="outline" className="py-1 px-3 flex-1 flex items-center">
+                        <Badge
+                          variant="outline"
+                          className="py-1 px-3 flex-1 flex items-center"
+                        >
                           <span>{variable.name}</span>
                           <span className="text-xs bg-muted px-1.5 py-0.5 rounded ml-2">
                             {variable.category}
@@ -1071,7 +1283,12 @@ export default function CreateProposal() {
                           type="number"
                           placeholder="Value"
                           value={variableValues[variable.id] || ""}
-                          onChange={(e) => handleVariableValueChange(variable.id, e.target.value)}
+                          onChange={(e) =>
+                            handleVariableValueChange(
+                              variable.id,
+                              e.target.value
+                            )
+                          }
                           className="w-32"
                         />
                         <Button
@@ -1107,16 +1324,21 @@ export default function CreateProposal() {
                   Prepared for <strong>{clientName || "Client Name"}</strong> on{" "}
                   <strong>{new Date().toLocaleDateString()}</strong>.
                 </p>
-                
+
                 <h2>Project Description</h2>
-                <p>{proposalDescription || "This proposal outlines the services to be provided."}</p>
-                
+                <p>
+                  {proposalDescription ||
+                    "This proposal outlines the services to be provided."}
+                </p>
+
                 {selectedCategories.length > 0 && (
                   <>
                     <h2>Categories</h2>
-                    {selectedCategories.map(category => (
+                    {selectedCategories.map((category) => (
                       <div key={category.id} className="mb-6">
-                        <h3 className="text-lg font-semibold">{category.name}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {category.name}
+                        </h3>
                         <table className="w-full border-collapse">
                           <thead>
                             <tr className="border-b">
@@ -1130,13 +1352,22 @@ export default function CreateProposal() {
                             {category.elements.map((element, idx) => {
                               const elementId = element.id?.toString();
                               const categoryId = category.id.toString();
-                              const editedElement = elementId ? editedElements[categoryId]?.[elementId] ?? element : element;
-                              const total = editedElement.material_cost + editedElement.labor_cost;
+                              const editedElement = elementId
+                                ? editedElements[categoryId]?.[elementId] ??
+                                  element
+                                : element;
+                              const total =
+                                editedElement.material_cost +
+                                editedElement.labor_cost;
                               return (
                                 <tr key={idx} className="border-b">
                                   <td className="py-2">{element.name}</td>
-                                  <td className="py-2">${editedElement.material_cost.toFixed(2)}</td>
-                                  <td className="py-2">${editedElement.labor_cost.toFixed(2)}</td>
+                                  <td className="py-2">
+                                    ${editedElement.material_cost.toFixed(2)}
+                                  </td>
+                                  <td className="py-2">
+                                    ${editedElement.labor_cost.toFixed(2)}
+                                  </td>
                                   <td className="py-2">${total.toFixed(2)}</td>
                                 </tr>
                               );
@@ -1153,26 +1384,37 @@ export default function CreateProposal() {
                     <h2>Custom Categories</h2>
                     {customCategories.map((category, idx) => (
                       <div key={idx} className="mb-6">
-                        <h3 className="text-lg font-semibold">{category.name}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {category.name}
+                        </h3>
                         {category.elements.length > 0 && (
                           <table className="w-full border-collapse">
                             <thead>
                               <tr className="border-b">
                                 <th className="text-left py-2">Element</th>
-                                <th className="text-left py-2">Material Cost</th>
+                                <th className="text-left py-2">
+                                  Material Cost
+                                </th>
                                 <th className="text-left py-2">Labor Cost</th>
                                 <th className="text-left py-2">Total</th>
                               </tr>
                             </thead>
                             <tbody>
                               {category.elements.map((element, elIdx) => {
-                                const total = element.material_cost + element.labor_cost;
+                                const total =
+                                  element.material_cost + element.labor_cost;
                                 return (
                                   <tr key={elIdx} className="border-b">
                                     <td className="py-2">{element.name}</td>
-                                    <td className="py-2">${element.material_cost.toFixed(2)}</td>
-                                    <td className="py-2">${element.labor_cost.toFixed(2)}</td>
-                                    <td className="py-2">${total.toFixed(2)}</td>
+                                    <td className="py-2">
+                                      ${element.material_cost.toFixed(2)}
+                                    </td>
+                                    <td className="py-2">
+                                      ${element.labor_cost.toFixed(2)}
+                                    </td>
+                                    <td className="py-2">
+                                      ${total.toFixed(2)}
+                                    </td>
                                   </tr>
                                 );
                               })}
@@ -1240,7 +1482,8 @@ export default function CreateProposal() {
                       <ul className="space-y-1">
                         {customVariables.map((variable, idx) => (
                           <li key={idx}>
-                            {variable.name} ({variable.category}): {variableValues[variable.id] || 0}
+                            {variable.name} ({variable.category}):{" "}
+                            {variableValues[variable.id] || 0}
                           </li>
                         ))}
                       </ul>
@@ -1250,7 +1493,7 @@ export default function CreateProposal() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Download as PDF</Button>
+        
             </CardFooter>
           </Card>
         </TabsContent>

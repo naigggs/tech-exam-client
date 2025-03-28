@@ -161,8 +161,10 @@ interface ContractFormData {
   termsAndConditions: string;
   additionalNotes?: string;
   signatureImage: string | null;
+  contractorSignature: string | null;
   proposalCategories: Category[];
   proposalVariables: Variable[];
+  contractorInitials: string;
 }
 
 // Define Category and Element interfaces
@@ -344,11 +346,18 @@ const ContractDocument = ({ formData }: { formData: ContractFormData }) => {
         <View style={pdfStyles.signatureSection}>
           <View style={pdfStyles.signatureBlock}>
             <Text style={pdfStyles.bold}>CONTRACTOR:</Text>
-            <View style={pdfStyles.signatureLine} />
+            {formData.contractorSignature ? (
+              <Image
+                src={formData.contractorSignature}
+                style={pdfStyles.signatureImage}
+              />
+            ) : (
+              <View style={pdfStyles.signatureLine} />
+            )}
             <Text style={pdfStyles.text}>{formData.contractorName}</Text>
             <Text style={pdfStyles.text}>{formData.contractorCompany}</Text>
             <Text style={pdfStyles.text}>
-              Initials: {getInitials(formData.contractorName)}
+              Initials: {formData.contractorInitials || getInitials(formData.contractorName)}
             </Text>
             <Text style={pdfStyles.text}>
               Date: {format(new Date(), "MMMM d, yyyy")}
@@ -410,9 +419,10 @@ export default function ContractViewer({ params }: PageProps) {
     termsAndConditions: "",
     additionalNotes: "",
     signatureImage: null as string | null,
-    clientSignature: "" as string,
+    contractorSignature: null as string | null,
     proposalCategories: [] as Category[],
     proposalVariables: [] as Variable[],
+    contractorInitials: "",
     client_email: "",
   });
 
@@ -459,7 +469,8 @@ export default function ContractViewer({ params }: PageProps) {
           signatureImage: data.client_signature,
           proposalCategories: proposalCategories,
           proposalVariables: proposalVariables,
-          client_email: data.proposal.client_email
+          client_email: data.proposal.client_email,
+          contractorSignature: data.contractor_signature,
         }));
       } catch (error) {
         console.error("Error fetching contract:", error);
@@ -494,6 +505,54 @@ export default function ContractViewer({ params }: PageProps) {
 
   const formatDate = (date: Date) => {
     return format(date, "MMMM d, yyyy");
+  };
+
+  const uploadContractorSignature = async () => {
+    if (!formData.contractorSignature || !id) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(false);
+
+    try {
+      // Create a FormData object to send the image
+      const formDataToSend = new FormData();
+
+      // Convert the base64 string to a blob
+      const base64Response = await fetch(formData.contractorSignature);
+      const blob = await base64Response.blob();
+
+      // Add the file to the FormData
+      formDataToSend.append("signature", blob, "signature.png");
+      
+      // Add contractor initials if available
+      if (formData.contractorInitials) {
+        formDataToSend.append("contractor_initials", formData.contractorInitials);
+      }
+
+      // Send the request to the server
+      const response = await fetch(
+        `${API_URL}/contracts/${id}/contractor_upload_signature`,
+        {
+          method: "POST",
+          body: formDataToSend,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to upload signature");
+      }
+
+      setUploadSuccess(true);
+    } catch (error) {
+      console.error("Error uploading signature:", error);
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to upload signature"
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const uploadSignature = async () => {
@@ -738,10 +797,11 @@ export default function ContractViewer({ params }: PageProps) {
             </CardContent>
           </Card>
 
+          {/* Client Signature Card */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Signatures</CardTitle>
-              <CardDescription>Contract signatures</CardDescription>
+              <CardTitle>Client Signature</CardTitle>
+              <CardDescription>Upload client signature</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 grid-cols-2">
@@ -769,28 +829,18 @@ export default function ContractViewer({ params }: PageProps) {
                       }}
                     />
                   </div>
-                  {uploadSuccess && (
-                    <p className="text-sm text-green-500 mt-1">
-                      Signature uploaded successfully!
-                    </p>
-                  )}
-                  {uploadError && (
-                    <p className="text-sm text-red-500 mt-1">
-                      Error: {uploadError}
-                    </p>
-                  )}
                   {formData.signatureImage && (
                     <div className="mt-2 border rounded-md p-2">
                       <img
                         src={formData.signatureImage}
-                        alt="Signature"
+                        alt="Client Signature"
                         className="max-h-20"
                       />
                     </div>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Client Name Initials</Label>
+                  <Label>Client Initials</Label>
                   <Input 
                     value={formData.clientNameInitials} 
                     onChange={(e) => 
@@ -802,6 +852,16 @@ export default function ContractViewer({ params }: PageProps) {
                   />
                 </div>
               </div>
+              {uploadSuccess && (
+                <p className="text-sm text-green-500 mt-1">
+                  Signature uploaded successfully!
+                </p>
+              )}
+              {uploadError && (
+                <p className="text-sm text-red-500 mt-1">
+                  Error: {uploadError}
+                </p>
+              )}
               <div className="flex justify-end">
                 <Button
                   onClick={uploadSignature}
@@ -812,7 +872,90 @@ export default function ContractViewer({ params }: PageProps) {
                     "Uploading..."
                   ) : (
                     <>
-                      <Upload className="mr-2 h-4 w-4" /> Upload
+                      <Upload className="mr-2 h-4 w-4" /> Upload Client Signature
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contractor Signature Card */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Contractor Signature</CardTitle>
+              <CardDescription>Upload contractor signature</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Contractor Signature</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept=".jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              contractorSignature: reader.result as string,
+                            }));
+                            // Reset upload status when a new file is selected
+                            setUploadSuccess(false);
+                            setUploadError(null);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </div>
+                  {formData.contractorSignature && (
+                    <div className="mt-2 border rounded-md p-2">
+                      <img
+                        src={formData.contractorSignature}
+                        alt="Contractor Signature"
+                        className="max-h-20"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Contractor Initials</Label>
+                  <Input 
+                    value={formData.contractorInitials} 
+                    onChange={(e) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        contractorInitials: e.target.value
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              {uploadSuccess && (
+                <p className="text-sm text-green-500 mt-1">
+                  Signature uploaded successfully!
+                </p>
+              )}
+              {uploadError && (
+                <p className="text-sm text-red-500 mt-1">
+                  Error: {uploadError}
+                </p>
+              )}
+              <div className="flex justify-end">
+                <Button
+                  onClick={uploadContractorSignature}
+                  disabled={!formData.contractorSignature || isUploading}
+                  size="sm"
+                >
+                  {isUploading ? (
+                    "Uploading..."
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" /> Upload Contractor Signature
                     </>
                   )}
                 </Button>
@@ -992,11 +1135,21 @@ export default function ContractViewer({ params }: PageProps) {
                   <div className="mt-10 grid grid-cols-2 gap-8">
                     <div>
                       <p className="font-semibold">CONTRACTOR:</p>
-                      <div className="mt-6 border-b border-dashed border-gray-400 pt-6"></div>
+                      {formData.contractorSignature ? (
+                        <div className="mt-4">
+                          <img
+                            src={formData.contractorSignature}
+                            alt="Contractor signature"
+                            className="max-h-16 mb-2"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-6 border-b border-dashed border-gray-400 pt-6"></div>
+                      )}
                       <p className="mt-2">{formData.contractorName}</p>
                       <p>{formData.contractorCompany}</p>
                       <p className="mt-2">
-                        Initials: {getInitials(formData.contractorName)}
+                        Initials: {formData.contractorInitials || getInitials(formData.contractorName)}
                       </p>
                       <p className="mt-2">
                         Date: {format(new Date(), "MMMM d, yyyy")}

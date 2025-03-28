@@ -151,6 +151,117 @@ export default function ContractMaker({ params }: PageProps) {
 
   const handleSaveDraft = async () => {
     try {
+      // Validate required fields
+      if (!formData.contractTitle.trim()) {
+        toast.error("Validation Error", {
+          description: "Contract title is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.contractorName.trim()) {
+        toast.error("Validation Error", {
+          description: "Contractor name is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.contractorCompany.trim()) {
+        toast.error("Validation Error", {
+          description: "Contractor company is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.clientName.trim()) {
+        toast.error("Validation Error", {
+          description: "Client name is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.clientAddress.trim()) {
+        toast.error("Validation Error", {
+          description: "Client address is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Validate dates
+      if (!formData.startDate) {
+        toast.error("Validation Error", {
+          description: "Start date is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.endDate) {
+        toast.error("Validation Error", {
+          description: "End date is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Validate that end date is after start date
+      if (formData.endDate < formData.startDate) {
+        toast.error("Validation Error", {
+          description: "End date must be after start date",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Validate payment information
+      if (!formData.paymentAmount.trim()) {
+        toast.error("Validation Error", {
+          description: "Payment amount is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Validate payment amount format (should start with $ and be a valid number)
+      const paymentAmountNumber = parseFloat(formData.paymentAmount.replace("$", ""));
+      if (isNaN(paymentAmountNumber) || paymentAmountNumber <= 0) {
+        toast.error("Validation Error", {
+          description: "Please enter a valid payment amount",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.paymentTerms.trim()) {
+        toast.error("Validation Error", {
+          description: "Payment terms are required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // Validate scope and terms
+      if (!formData.scope.trim()) {
+        toast.error("Validation Error", {
+          description: "Scope of work is required",
+          duration: 4000,
+        });
+        return;
+      }
+
+      if (!formData.termsAndConditions.trim()) {
+        toast.error("Validation Error", {
+          description: "Terms and conditions are required",
+          duration: 4000,
+        });
+        return;
+      }
+
       setIsSubmitting(true);
 
       const payload = {
